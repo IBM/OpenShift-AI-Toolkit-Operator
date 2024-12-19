@@ -22,7 +22,8 @@ go.work
 
 bin/
 .DS_Store
-
 operator-setup/env.sh
 operator-setup/*.json
 rough.txt
+env.sh
+pull-secret-*
