@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- ai-toolkit_v1alpha1_tritoninterfaceserver.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

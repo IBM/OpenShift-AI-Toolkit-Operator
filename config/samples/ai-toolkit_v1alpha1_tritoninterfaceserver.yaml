@@ -1,0 +1,22 @@
+apiVersion: ai-toolkit.ibm.com/v1alpha1
+kind: TritonInterfaceServer
+metadata:
+  labels:
+    app.kubernetes.io/name: openshift-ai-toolkit
+    app.kubernetes.io/managed-by: kustomize
+  name: tritoninterfaceserver-sample
+spec:
+  pvcName: triton-pvc
+  mountPath: "/mount"
+  servers:
+    - type: HTTP
+      enabled: true
+    - type: Metrics
+      enabled: true
+  podResources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 100m
+      memory: 200Mi

@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: openshift-ai-toolkit-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: quay.io/openshift-ai-toolkit/openshift-ai-toolkit-operator-catalog:v0.0.1
+  displayName: OpenShift AI Toolkit Operator Catalog
+  publisher: OpenShift AI Toolkit

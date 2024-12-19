@@ -1,0 +1,121 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  creationTimestamp: null
+  name: tritoninterfaceservers.ai-toolkit.ibm.com
+spec:
+  group: ai-toolkit.ibm.com
+  names:
+    kind: TritonInterfaceServer
+    listKind: TritonInterfaceServerList
+    plural: tritoninterfaceservers
+    singular: tritoninterfaceserver
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: TritonInterfaceServer is the Schema for the tritoninterfaceservers
+          API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TritonInterfaceServerSpec defines the desired state of TritonInterfaceServer
+            properties:
+              mountPath:
+                type: string
+              podResources:
+                properties:
+                  limits:
+                    properties:
+                      cpu:
+                        type: string
+                      memory:
+                        type: string
+                    required:
+                    - cpu
+                    - memory
+                    type: object
+                  requests:
+                    properties:
+                      cpu:
+                        type: string
+                      memory:
+                        type: string
+                    required:
+                    - cpu
+                    - memory
+                    type: object
+                required:
+                - limits
+                - requests
+                type: object
+              pvcName:
+                type: string
+              servers:
+                items:
+                  properties:
+                    containerPort:
+                      default: 0
+                      format: int32
+                      maximum: 65535
+                      minimum: 0
+                      type: integer
+                    enabled:
+                      type: boolean
+                    type:
+                      enum:
+                      - HTTP
+                      - GRPC
+                      - Metrics
+                      type: string
+                  required:
+                  - containerPort
+                  - enabled
+                  - type
+                  type: object
+                maxItems: 3
+                minItems: 1
+                type: array
+              servingImage:
+                default: icr.io/ibmz/ibmz-accelerated-for-nvidia-triton-inference-server@sha256:2cedd535805c316fec7dff6cac8129d873da39348459f645240eec005172b641
+                type: string
+            required:
+            - mountPath
+            - pvcName
+            - servers
+            - servingImage
+            type: object
+          status:
+            description: TritonInterfaceServerStatus defines the observed state of
+              TritonInterfaceServer
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: null
+  storedVersions: null
