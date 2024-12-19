@@ -56,7 +56,7 @@ This operator provides Deployment Server for various models available on IBM Z
   ```
 
   If everything goes through fine, operator will be available in operator hub and can be installed from there
-  ![Screenshot 2024-12-05 at 9 36 25 PM](https://github.ibm.com/Openshift-ai-toolkit/OpenShift-AI-Toolkit-Operator/assets/407662/add5d509-cd70-41a6-aad5-f2b77774dab8)
+  ![add5d509-cd70-41a6-aad5-f2b77774dab8](https://github.com/user-attachments/assets/5718a581-080c-496f-b68f-0c349e829696)
 
 ## Using this Operator
 
