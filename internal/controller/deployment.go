@@ -28,13 +28,55 @@ func (r *TritonInterfaceServerReconciler) deploymentForModelServing(tis *aitoolk
 					CreationTimestamp: metav1.Now(),
 				},
 				Spec: corev1.PodSpec{
-					Volumes: []corev1.Volume{{Name: "persistent-volume", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: tis.Spec.PvcName}}}},
+					Volumes: func() []corev1.Volume {
+						volumes := []corev1.Volume{
+							{
+								Name: "persistent-volume",
+								VolumeSource: corev1.VolumeSource{
+									PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+										ClaimName: tis.Spec.PvcName,
+									},
+								},
+							},
+						}
+						if tis.Spec.TLSSecretName != "" {
+							volumes = append(volumes, corev1.Volume{
+								Name: "tls-certificates",
+								VolumeSource: corev1.VolumeSource{
+									Secret: &corev1.SecretVolumeSource{
+										SecretName: tis.Spec.TLSSecretName,
+									},
+								},
+							})
+						}
+						return volumes
+					}(),
 					Containers: []corev1.Container{
 						{
-							Name:         deploymentName + "-pod",
-							Image:        tis.Spec.ServingImage,
-							Args:         []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath},
-							VolumeMounts: []corev1.VolumeMount{{Name: "persistent-volume", MountPath: tis.Spec.MountPath}},
+							Name:  deploymentName + "-pod",
+							Image: tis.Spec.ServingImage,
+							Args: func() []string {
+								if tis.Spec.TLSSecretName != "" {
+									return []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath, "--grpc-use-ssl=1", "--grpc-server-cert \"/tls/tls.crt\"", "--grpc-server-key \"/tls/tls.key\""}
+								}
+								return []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath}
+							}(),
+							VolumeMounts: func() []corev1.VolumeMount {
+								volumeMounts := []corev1.VolumeMount{
+									{
+										Name:      "persistent-volume",
+										MountPath: tis.Spec.MountPath,
+									},
+								}
+								if tis.Spec.TLSSecretName != "" {
+									volumeMounts = append(volumeMounts, corev1.VolumeMount{
+										Name:      "tls-certificates",
+										MountPath: "/mnt/tls",
+										ReadOnly:  true,
+									})
+								}
+								return volumeMounts
+							}(),
 						},
 					},
 				},

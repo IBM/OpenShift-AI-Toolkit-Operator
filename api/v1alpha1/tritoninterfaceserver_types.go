@@ -42,6 +42,14 @@ type TritonInterfaceServerSpec struct {
 
 	// +kubebuilder:validation:Optional
 	PodResources Resource `json:"podResources"`
+
+	// TLSSpec includes the TLS Secret Name (optional)
+	//  +kubebuilder:validation:Optional
+	TLSSpec `json:"spec,omitempty"`
+}
+
+type TLSSpec struct {
+	TLSSecretName string `json:"tlsSecretName,omitempty"` // The TLS Secret Name (optional)
 }
 
 type Server struct {

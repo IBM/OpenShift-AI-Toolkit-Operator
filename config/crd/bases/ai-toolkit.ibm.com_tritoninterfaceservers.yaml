@@ -98,6 +98,12 @@ spec:
               servingImage:
                 default: icr.io/ibmz/ibmz-accelerated-for-nvidia-triton-inference-server@sha256:2cedd535805c316fec7dff6cac8129d873da39348459f645240eec005172b641
                 type: string
+              spec:
+                description: TLSSpec includes the TLS Secret Name (optional)
+                properties:
+                  tlsSecretName:
+                    type: string
+                type: object
             required:
             - mountPath
             - pvcName

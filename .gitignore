@@ -27,3 +27,6 @@ operator-setup/*.json
 rough.txt
 env.sh
 pull-secret-*
+
+#vscode files
+.vscode
