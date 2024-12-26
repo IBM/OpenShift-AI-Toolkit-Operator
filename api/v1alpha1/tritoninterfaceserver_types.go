@@ -42,14 +42,6 @@ type TritonInterfaceServerSpec struct {
 
 	// +kubebuilder:validation:Optional
 	PodResources Resource `json:"podResources"`
-
-	// TLSSpec includes the TLS Secret Name (optional)
-	//  +kubebuilder:validation:Optional
-	TLSSpec `json:"spec,omitempty"`
-}
-
-type TLSSpec struct {
-	TLSSecretName string `json:"tlsSecretName,omitempty"` // The TLS Secret Name (optional)
 }
 
 type Server struct {
@@ -62,6 +54,9 @@ type Server struct {
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Maximum=65535
 	ContainerPort uint32 `json:"containerPort"`
+	// TLSSpec includes the TLS Secret Name (optional)
+	//  +kubebuilder:validation:Optional
+	TLSSecretName string `json:"tlsSecretName,omitempty"` // The TLS Secret Name (optional)
 }
 
 type Resource struct {
