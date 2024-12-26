@@ -16,6 +16,16 @@ metadata:
           },
           "spec": {
             "mountPath": "/mount",
+            "podResources": {
+              "limits": {
+                "cpu": "1000m",
+                "memory": "2Gi"
+              },
+              "requests": {
+                "cpu": "100m",
+                "memory": "200Mi"
+              }
+            },
             "pvcName": "triton-pvc",
             "servers": [
               {
@@ -31,13 +41,13 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2024-12-05T15:08:47Z"
+    createdAt: "2024-12-26T09:28:04Z"
     operators.operatorframework.io/builder: operator-sdk-v1.38.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
   labels:
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: openshift-ai-toolkit.v0.0.1
+  name: openshift-ai-toolkit.v0.0.2
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -172,7 +182,7 @@ spec:
                 - --health-probe-bind-address=:8081
                 command:
                 - /manager
-                image: quay.io/openshift-ai-toolkit/openshift-ai-toolkit-operator-controller:latest
+                image: quay.io/dbhagava/openshift-ai-toolkit-operator-controller:latest
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -261,4 +271,4 @@ spec:
   maturity: alpha
   provider:
     name: ISDL, IBM
-  version: 0.0.1
+  version: 0.0.2
