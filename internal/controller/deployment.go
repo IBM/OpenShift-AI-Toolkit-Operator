@@ -55,7 +55,7 @@ func (r *TritonInterfaceServerReconciler) deploymentForModelServing(tis *aitoolk
 						{
 							Name:  deploymentName + "-pod",
 							Image: tis.Spec.ServingImage,
-							Args: []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath}
+							Args:  []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath},
 							VolumeMounts: func() []corev1.VolumeMount {
 								volumeMounts := []corev1.VolumeMount{
 									{
