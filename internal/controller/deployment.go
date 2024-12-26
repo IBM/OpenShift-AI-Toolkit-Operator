@@ -57,7 +57,7 @@ func (r *TritonInterfaceServerReconciler) deploymentForModelServing(tis *aitoolk
 							Image: tis.Spec.ServingImage,
 							Args: func() []string {
 								if tis.Spec.TlsSecretName != "" {
-									return []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath, "--grpc-use-ssl=1", "--grpc-server-cert \"/tls/tls.crt\"", "--grpc-server-key \"/tls/tls.key\""}
+									return []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath, "--grpc-use-ssl=1", "--grpc-server-cert \"/mnt/tls/tls.crt\"", "--grpc-server-key \"/mnt/tls/tls.key\""}
 								}
 								return []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath}
 							}(),
