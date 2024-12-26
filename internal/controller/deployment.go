@@ -57,7 +57,7 @@ func (r *TritonInterfaceServerReconciler) deploymentForModelServing(tis *aitoolk
 							Image: tis.Spec.ServingImage,
 							Args: func() []string {
 								if tis.Spec.TlsSecretName != "" {
-									return []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath, "--grpc-use-ssl=1", "--grpc-server-cert \"/mnt/tls/tls.crt\"", "--grpc-server-key \"/mnt/tls/tls.key\""}
+									return []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath, "--grpc-use-ssl=1", "--grpc-server-cert=/mnt/tls/tls.crt", "--grpc-server-key=/mnt/tls/tls.key"}
 								}
 								return []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath}
 							}(),
@@ -71,7 +71,14 @@ func (r *TritonInterfaceServerReconciler) deploymentForModelServing(tis *aitoolk
 								if tis.Spec.TlsSecretName != "" {
 									volumeMounts = append(volumeMounts, corev1.VolumeMount{
 										Name:      "tls-certificates",
-										MountPath: "/mnt/tls",
+										MountPath: "/mnt/tls/tls.crt",
+										SubPath:   "tls.crt",
+										ReadOnly:  true,
+									})
+									volumeMounts = append(volumeMounts, corev1.VolumeMount{
+										Name:      "tls-certificates",
+										MountPath: "/mnt/tls/tls.key",
+										SubPath:   "tls.key",
 										ReadOnly:  true,
 									})
 								}
