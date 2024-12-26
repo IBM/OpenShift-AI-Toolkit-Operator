@@ -55,7 +55,12 @@ func (r *TritonInterfaceServerReconciler) deploymentForModelServing(tis *aitoolk
 						{
 							Name:  deploymentName + "-pod",
 							Image: tis.Spec.ServingImage,
-							Args:  []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath},
+							Args: func() []string {
+								if tis.Spec.TlsSecretName != "" {
+									return []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath, "--grpc-use-ssl=1", "--grpc-server-cert \"/tls/tls.crt\"", "--grpc-server-key \"/tls/tls.key\""}
+								}
+								return []string{"tritonserver", "--model-repository=" + tis.Spec.MountPath}
+							}(),
 							VolumeMounts: func() []corev1.VolumeMount {
 								volumeMounts := []corev1.VolumeMount{
 									{
@@ -113,9 +118,6 @@ func (r *TritonInterfaceServerReconciler) deploymentForModelServing(tis *aitoolk
 				if server.ContainerPort != 0 {
 					deployForModelServing.Spec.Template.Spec.Containers[0].Ports = append(deployForModelServing.Spec.Template.Spec.Containers[0].Ports, corev1.ContainerPort{ContainerPort: int32(server.ContainerPort)})
 					deployForModelServing.Spec.Template.Spec.Containers[0].Args = append(deployForModelServing.Spec.Template.Spec.Containers[0].Args, "--grpc-port="+fmt.Sprint(server.ContainerPort))
-					deployForModelServing.Spec.Template.Spec.Containers[0].Args = append(deployForModelServing.Spec.Template.Spec.Containers[0].Args, "--grpc-use-ssl=1")
-					deployForModelServing.Spec.Template.Spec.Containers[0].Args = append(deployForModelServing.Spec.Template.Spec.Containers[0].Args, "--grpc-server-cert \"/mnt/tls/tls.crt\" --grpc-server-key \"/mnt/tls/tls.key\"")
-
 				} else {
 					deployForModelServing.Spec.Template.Spec.Containers[0].Ports = append(deployForModelServing.Spec.Template.Spec.Containers[0].Ports, corev1.ContainerPort{ContainerPort: int32(8001)})
 				}
