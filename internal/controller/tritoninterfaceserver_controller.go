@@ -115,15 +115,31 @@ func (r *TritonInterfaceServerReconciler) Reconcile(ctx context.Context, req ctr
 		err = r.Get(ctx, types.NamespacedName{Name: routeName, Namespace: tis.Namespace}, routeResource)
 		if err != nil && errors.IsNotFound(err) {
 			// Define a new deployment
-			route := r.routeForModelServing(tis, deploymentName, routeName, svcName, &server)
-			log.Log.Info("Creating a new Route", "Route.Namespace", tis.Namespace, "Route.Name", route.Name, "TritonInterfaceServer", tis.Name)
-			err = r.Create(ctx, route)
-			if err != nil {
-				log.Log.Error(err, "Failed to create new Route", "Route.Namespace", route.Namespace, "Route.Name", route.Name, "TritonInterfaceServer", tis.Name)
-				return ctrl.Result{}, err
+			if strings.Contains(routeName, "grpc") {
+				log.Log.Info("Configuring TLS Passthrough for gRPC route", "Route.Name", routeName)
+				tlsConfig := &routev1.TLSConfig{
+					Termination: routev1.TLSTerminationPassthrough,
+				}
+				// Define the route with TLS passthrough
+				route := r.routeForModelServing(tis, deploymentName, routeName, svcName, &server)
+				route.Spec.TLS = tlsConfig
+				log.Log.Info("Creating a new Route with TLS Passthrough", "Route.Namespace", tis.Namespace, "Route.Name", route.Name, "TritonInterfaceServer", tis.Name)
+				err = r.Create(ctx, route)
+				if err != nil {
+					log.Log.Error(err, "Failed to create new Route with TLS Passthrough", "Route.Namespace", route.Namespace, "Route.Name", route.Name, "TritonInterfaceServer", tis.Name)
+					return ctrl.Result{}, err
+				}
+			} else {
+				route := r.routeForModelServing(tis, deploymentName, routeName, svcName, &server)
+				log.Log.Info("Creating a new Route", "Route.Namespace", tis.Namespace, "Route.Name", route.Name, "TritonInterfaceServer", tis.Name)
+				err = r.Create(ctx, route)
+				if err != nil {
+					log.Log.Error(err, "Failed to create new Route", "Route.Namespace", route.Namespace, "Route.Name", route.Name, "TritonInterfaceServer", tis.Name)
+					return ctrl.Result{}, err
+				}
+				// Deployment created successfully - return and requeue
+				return ctrl.Result{Requeue: true}, nil
 			}
-			// Deployment created successfully - return and requeue
-			return ctrl.Result{Requeue: true}, nil
 		} else if err != nil {
 			log.Log.Error(err, "Failed to get Route", "Route.Namespace", tis.Namespace, "Route.Name", routeName, "TritonInterfaceServer", tis.Name)
 			return ctrl.Result{}, err

@@ -182,7 +182,7 @@ spec:
                 - --health-probe-bind-address=:8081
                 command:
                 - /manager
-                image: quay.io/dbhagava/openshift-ai-toolkit-operator-controller:latest
+                image: quay.io/openshift-ai-toolkit/openshift-ai-toolkit-operator-controller:latest
                 livenessProbe:
                   httpGet:
                     path: /healthz
