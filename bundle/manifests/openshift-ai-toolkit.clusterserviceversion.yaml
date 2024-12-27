@@ -41,13 +41,13 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2024-12-26T09:28:04Z"
+    createdAt: "2024-12-27T07:48:41Z"
     operators.operatorframework.io/builder: operator-sdk-v1.38.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
   labels:
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: openshift-ai-toolkit.v0.0.2
+  name: openshift-ai-toolkit.v0.0.1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -271,4 +271,4 @@ spec:
   maturity: alpha
   provider:
     name: ISDL, IBM
-  version: 0.0.2
+  version: 0.0.1
