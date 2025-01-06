@@ -40,6 +40,14 @@ spec:
           spec:
             description: TritonInterfaceServerSpec defines the desired state of TritonInterfaceServer
             properties:
+              grpcConfig:
+                properties:
+                  tlsSpec:
+                    properties:
+                      tlsSecretName:
+                        type: string
+                    type: object
+                type: object
               mountPath:
                 type: string
               podResources:

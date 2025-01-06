@@ -42,6 +42,9 @@ type TritonInterfaceServerSpec struct {
 
 	// +kubebuilder:validation:Optional
 	PodResources Resource `json:"podResources"`
+
+	// +kubebuilder:validation:Optional
+	GrpcConfig GrpcConfig `json:"grpcConfig"`
 }
 
 type Server struct {
@@ -68,6 +71,16 @@ type PodResource struct {
 	Cpu string `json:"cpu"`
 	// +kubebuilder:validation:Required
 	Memory string `json:"memory"`
+}
+
+type GrpcConfig struct {
+	// +kubebuilder:validation:Optional
+	TlsSpec TlsSpec `json:"tlsSpec"`
+}
+
+type TlsSpec struct {
+	// +kubebuilder:validation:Optional
+	TlsSecretName string `json:"tlsSecretName"`
 }
 
 // TritonInterfaceServerStatus defines the observed state of TritonInterfaceServer

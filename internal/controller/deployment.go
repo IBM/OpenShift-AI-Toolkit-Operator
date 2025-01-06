@@ -58,6 +58,33 @@ func (r *TritonInterfaceServerReconciler) deploymentForModelServing(tis *aitoolk
 		limits[corev1.ResourceMemory] = memRequest
 	}
 	deployForModelServing.Spec.Template.Spec.Containers[0].Resources.Limits = limits
+	//conditon for grpc specific tls Spec
+	if tis.Spec.GrpcConfig.TlsSpec.TlsSecretName != "" {
+		deployForModelServing.Spec.Template.Spec.Volumes = append(deployForModelServing.Spec.Template.Spec.Volumes, corev1.Volume{
+			Name: "grpc-tls-certificates",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: tis.Spec.GrpcConfig.TlsSpec.TlsSecretName,
+				},
+			},
+		})
+		//conditon for grpc specific arguments
+		deployForModelServing.Spec.Template.Spec.Containers[0].Args = append(deployForModelServing.Spec.Template.Spec.Containers[0].Args, "--grpc-use-ssl=1", "--grpc-server-cert=/mnt/tls/tls.crt", "--grpc-server-key=/mnt/tls/tls.key")
+		//condition for grpc specific volumeMounts
+		deployForModelServing.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployForModelServing.Spec.Template.Spec.Containers[0].VolumeMounts,
+			corev1.VolumeMount{
+				Name:      "tls-certificates",
+				MountPath: "/mnt/tls/tls.crt",
+				SubPath:   "tls.crt",
+				ReadOnly:  true,
+			},
+			corev1.VolumeMount{
+				Name:      "tls-certificates",
+				MountPath: "/mnt/tls/tls.key",
+				SubPath:   "tls.key",
+				ReadOnly:  true,
+			})
+	}
 	//assign servers
 	enabledservers := make(map[int]bool)
 	for _, server := range tis.Spec.Servers {

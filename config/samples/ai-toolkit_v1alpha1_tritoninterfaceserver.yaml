@@ -13,6 +13,8 @@ spec:
       enabled: true
     - type: Metrics
       enabled: true
+    - type: GRPC
+      enabled: true
   podResources:
     limits:
       cpu: 1000m
