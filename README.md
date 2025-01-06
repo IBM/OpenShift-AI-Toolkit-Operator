@@ -60,7 +60,7 @@ This operator provides Deployment Server for various models available on IBM Z
 
 ## Using this Operator
 
-### Step 1: Creating pvc and injecting Model data inside them
+### Step 1A: Creating pvc and injecting Model data inside them (Required)
 
 As an example, there is a model directory present in the repo with two pre-populated data modules: creadit card fraud detection(Snapml) and densenet(onnx)
 ```sh
@@ -146,6 +146,42 @@ Attaching sample Output for Reference:
  ```
 </details>
 
+### Step 1B: Configuring TLS Certificates for GRPC Server (Optional for gRPC Server usage)
+
+gRPC Works on HTTP/2 Protocol. Same needs to be enabled in Openshift ingress controller.
+
+Syntax:
+``` sh
+oc -n openshift-ingress-operator annotate ingresscontrollers/<ingresscontroller_name> ingress.operator.openshift.io/default-enable-http2=true
+```
+
+To enable HTTP/2 on the entire cluster, use the following command.
+
+``` sh
+oc annotate ingresses.config/cluster ingress.operator.openshift.io/default-enable-http2=true
+```
+
+Create a TLS secret consisting of TLS certificate and TLS private key using the following command.This Configuration will be passed onto the gRPC Server.
+
+Syntax:
+```sh
+# Create TLS certificate using the openssl command. Fill the details requested.
+openssl req -newkey rsa:4096 -nodes -keyout <path_to_store_tls_key> -x509 -days 365 -out <path_to_store_tls_cert>
+```
+
+Sample:
+```sh
+mkdir tls
+openssl req -newkey rsa:4096 -nodes -keyout tls/tls.key -x509 -days 365 -out tls/tls.crt
+```
+
+Inject these configuration in Openshift secret:
+```sh
+oc create secret tls grpc-tls-secret --cert=tls/tls.crt --key=tls/tls.key
+```
+
+This information needs to populated in the CRD yaml file 
+
 ### Step 2: Creating the Custom CRDs
 
 Assuming that operator was installed successfully and the custom crds can be applied now
@@ -182,6 +218,16 @@ Assuming that operator was installed successfully and the custom crds can be app
 | `requests.cpu`        | `"1"`                 | Minimum guaranteed number of CPU cores allocated to the pod.                                        |
 | `requests.memory`     | `"1Gi"`               | Minimum guaranteed memory allocated to the pod.                                                    |
 
+---
+
+### `TlsSpec` Variables
+
+| **Variable Name**     | **Sample Value**       | **Explanation**                                                                                     |
+|------------------------|------------------------|-----------------------------------------------------------------------------------------------------|
+| `tlsSecretName`          | `"grpc-tls-secret"`                 | The OpenShift Secret Name where TLS configurations are stored.                       |                         
+
+---
+
 There is a sample crd within the repo as well
 
 ```sh
@@ -203,6 +249,11 @@ spec:
       enabled: true
     - type: Metrics
       enabled: true
+    - type: GRPC
+      enabled: true
+  grpcConfig:
+    tlsSpec:
+      tlsSecretName: grpc-tls-secret
   podResources:
     limits:
       cpu: 1000m
@@ -228,23 +279,29 @@ In a test cluster, the following resources were created in the order
 ```sh
 [root@t313lp68 operator-examples]# oc get all -n triton-ns
 Warning: apps.openshift.io/v1 DeploymentConfig is deprecated in v4.14+, unavailable in v4.10000+
-NAME                                                    READY   STATUS    RESTARTS      AGE
-pod/alpine-pvc-pod                                      1/1     Running   1 (21m ago)   82m
-pod/triton-server-624c8ff1-triton-pvc-9f55c95c9-7pfcq   1/1     Running   0             93s
+NAME                                                           READY   STATUS    RESTARTS      AGE
+pod/alpine-pvc-pod                                             1/1     Running   4 (37m ago)   4h37m
+pod/openshift-ai-toolkit-controller-manager-5f59859f7b-dbpnv   1/1     Running   0             30m
+pod/triton-server-658db168-triton-pvc-6bdb495998-26bqd         1/1     Running   0             113s
 
-NAME                                                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
-service/http-service-triton-server-624c8ff1-triton-pvc      ClusterIP   172.30.18.30    <none>        80/TCP    93s
-service/metrics-service-triton-server-624c8ff1-triton-pvc   ClusterIP   172.30.58.196   <none>        80/TCP    93s
+NAME                                                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/grpc-service-triton-server-658db168-triton-pvc            ClusterIP   172.30.123.67   <none>        80/TCP     113s
+service/http-service-triton-server-658db168-triton-pvc            ClusterIP   172.30.255.51   <none>        80/TCP     113s
+service/metrics-service-triton-server-658db168-triton-pvc         ClusterIP   172.30.142.91   <none>        80/TCP     113s
+service/openshift-ai-toolkit-controller-manager-metrics-service   ClusterIP   172.30.84.169   <none>        8443/TCP   30m
 
-NAME                                                READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/triton-server-624c8ff1-triton-pvc   1/1     1            1           93s
+NAME                                                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/openshift-ai-toolkit-controller-manager   1/1     1            1           30m
+deployment.apps/triton-server-658db168-triton-pvc         1/1     1            1           114s
 
-NAME                                                          DESIRED   CURRENT   READY   AGE
-replicaset.apps/triton-server-624c8ff1-triton-pvc-9f55c95c9   1         1         1       93s
+NAME                                                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/openshift-ai-toolkit-controller-manager-5f59859f7b   1         1         1       30m
+replicaset.apps/triton-server-658db168-triton-pvc-6bdb495998         1         1         1       114s
 
-NAME                                                                       HOST/PORT                                                                              PATH   SERVICES                                            PORT   TERMINATION   WILDCARD
-route.route.openshift.io/http-route-triton-server-624c8ff1-triton-pvc      http-route-triton-server-624c8ff1-triton-pvc-triton-ns.apps.t313lp68ocp.lnxne.boe             http-service-triton-server-624c8ff1-triton-pvc      8000                 None
-route.route.openshift.io/metrics-route-triton-server-624c8ff1-triton-pvc   metrics-route-triton-server-624c8ff1-triton-pvc-triton-ns.apps.t313lp68ocp.lnxne.boe          metrics-service-triton-server-624c8ff1-triton-pvc   8002                 None
+NAME                                                                       HOST/PORT                                                                               PATH   SERVICES                                            PORT   TERMINATION   WILDCARD
+route.route.openshift.io/grpc-route-triton-server-658db168-triton-pvc      grpc-route-triton-server-658db168-triton-pvc-ai-toolkit.apps.a314lp45ocp.lnxne.boe             grpc-service-triton-server-658db168-triton-pvc      8001   passthrough   None
+route.route.openshift.io/http-route-triton-server-658db168-triton-pvc      http-route-triton-server-658db168-triton-pvc-ai-toolkit.apps.a314lp45ocp.lnxne.boe             http-service-triton-server-658db168-triton-pvc      8000                 None
+route.route.openshift.io/metrics-route-triton-server-658db168-triton-pvc   metrics-route-triton-server-658db168-triton-pvc-ai-toolkit.apps.a314lp45ocp.lnxne.boe          metrics-service-triton-server-658db168-triton-pvc   8002                 None
 ```
 
 Via this example we have created two route one for http server and one for metrics server
@@ -340,5 +397,30 @@ nv_cpu_memory_total_bytes 16861294592
 # HELP nv_cpu_memory_used_bytes CPU used memory (RAM), in bytes
 # TYPE nv_cpu_memory_used_bytes gauge
 nv_cpu_memory_used_bytes 4000546816
+```
+</details>
+
+Sample gRPC Health Check
+<details>
+  <summary>Click to expand the shell command</summary>
+
+<br>This is a simple gRPC health Check achieved through port-forward of openshift pod <br>
+For this code snippet to work, please remove grpcConfig.tlsSpec.tlsSecretName from the Crd configuration <br>
+<b>Note:This configuration are for liveness checkness only.Please don't use it in production</b>
+
+```sh
+[root@a3elp45 OpenShift-AI-Toolkit-Operator]# oc get pod | grep triton
+triton-server-fa7c1cee-triton-pvc-5f75fb5679-kx4nn         1/1     Running   0             5s
+```
+
+Copy the pod name and use it in the next command<br>
+```sh
+oc port-forward pod/<pod-name-from-command-above> 8001:8001 #Execute in a new shell
+```
+
+Run the health check script
+```sh
+(base) shivanggoswami@Shivangs-MacBook-Pro operator-examples % python grpc-server-liveness.py
+Triton server is live.
 ```
 </details>
