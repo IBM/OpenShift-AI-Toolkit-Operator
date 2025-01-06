@@ -15,6 +15,9 @@ spec:
       enabled: true
     - type: GRPC
       enabled: true
+  grpcConfig:
+    tlsSpec:
+      tlsSecretName: tls-secret
   podResources:
     limits:
       cpu: 1000m

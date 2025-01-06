@@ -73,13 +73,13 @@ func (r *TritonInterfaceServerReconciler) deploymentForModelServing(tis *aitoolk
 		//condition for grpc specific volumeMounts
 		deployForModelServing.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployForModelServing.Spec.Template.Spec.Containers[0].VolumeMounts,
 			corev1.VolumeMount{
-				Name:      "tls-certificates",
+				Name:      "grpc-tls-certificates",
 				MountPath: "/mnt/tls/tls.crt",
 				SubPath:   "tls.crt",
 				ReadOnly:  true,
 			},
 			corev1.VolumeMount{
-				Name:      "tls-certificates",
+				Name:      "grpc-tls-certificates",
 				MountPath: "/mnt/tls/tls.key",
 				SubPath:   "tls.key",
 				ReadOnly:  true,
