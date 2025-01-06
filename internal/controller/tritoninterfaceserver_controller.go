@@ -117,7 +117,7 @@ func (r *TritonInterfaceServerReconciler) Reconcile(ctx context.Context, req ctr
 			// Define a new deployment
 			route := r.routeForModelServing(tis, deploymentName, routeName, svcName, &server)
 			log.Log.Info("Creating a new Route", "Route.Namespace", tis.Namespace, "Route.Name", route.Name, "TritonInterfaceServer", tis.Name)
-			if strings.Contains(routeName, "grpc") {
+			if strings.Contains(routeName, "grpc") && tis.Spec.GrpcConfig.TlsSpec.TlsSecretName != "" {
 				log.Log.Info("Configuring TLS Passthrough for gRPC route", "Route.Name", routeName, "TritonInterfaceServer", tis.Name)
 				route.Spec.TLS = &routev1.TLSConfig{Termination: routev1.TLSTerminationPassthrough}
 			}
