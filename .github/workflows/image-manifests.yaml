@@ -44,6 +44,7 @@ jobs:
           make docker-buildx
       - name: Bundle build and push
         env:
+          VERSION: '${{ github.event.inputs.version }}'
           IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ github.event.inputs.version }}'
           BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ github.event.inputs.version }}'
         run: |
