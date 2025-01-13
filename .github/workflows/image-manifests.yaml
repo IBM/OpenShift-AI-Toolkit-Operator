@@ -1,0 +1,63 @@
+name: AI-toolkit-release-image-generation-workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version number of the operator'
+        required: true
+        default: '0.0.3'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG_BASE: 'quay.io/openshift-ai-toolkit/openshift-ai-toolkit-operator'
+      PLATFORMS: 'linux/s390x'
+      CONTAINER_TOOL: 'docker'
+    steps: 
+      # Prerequisite
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+      - name: Run make commands
+        run: make generate manifests
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest      
+          platforms: linux/s390x
+      - name: Log in to QUAY
+        uses: docker/login-action@v2
+        with:
+          registry: quay.io
+          username: ${{ secrets.CR_USER_NAME }}
+          password: ${{ secrets.CR_SECRET }}
+      # Builds
+      - name: Docker build and push using Buildx
+        env:
+          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ github.event.inputs.version }}'
+        run: |
+          make docker-buildx
+      - name: Bundle build and push
+        env:
+          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ github.event.inputs.version }}'
+          BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ github.event.inputs.version }}'
+        run: |
+          make bundle
+          sed -e '1 s/\(^FROM\)/FROM --platform=\$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$\{BUILDPLATFORM\}/' bundle.Dockerfile > bundle.Dockerfile.cross
+          ${{ env.CONTAINER_TOOL }} buildx create --name openshift-ai-toolkit-operator-builder
+          ${{ env.CONTAINER_TOOL }} buildx use openshift-ai-toolkit-operator-builder
+          ${{ env.CONTAINER_TOOL }} buildx build --push --platform=${{ env.PLATFORMS }} --tag ${{ env.BUNDLE_IMG }} -f bundle.Dockerfile.cross .
+          ${{ env.CONTAINER_TOOL }} buildx rm openshift-ai-toolkit-operator-builder
+          rm bundle.Dockerfile.cross
+      - name: Catalog build and push
+        env:
+          VERSION: '${{ github.event.inputs.version }}'
+          DOCKER_DEFAULT_PLATFORM: '${{ env.PLATFORMS }}'
+        run: |
+          make catalog-build catalog-push
+        
