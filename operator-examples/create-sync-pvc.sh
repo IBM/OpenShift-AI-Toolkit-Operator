@@ -11,7 +11,7 @@ POD_NAME="alpine-pvc-pod" # Pod name
 MOUNT_PATH="/mnt/data"  # PVC mount path inside the pod
 CONTAINER_NAME="alpine" # Container name
 PVC_STORAGE="10Gi"      # PVC storage size
-ALPINE_IMAGE="alpinelinux/rsyncd" # Alpine image to use for the pod
+ALPINE_IMAGE="alpinelinux/rsyncd:latest-s390x" # Alpine image to use for the pod
 CLEAN=true             # Set to true to clean (delete) existing PVC and Pod before execution
 
 # Check if the local directory exists
