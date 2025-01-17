@@ -62,7 +62,7 @@ This operator provides Deployment Server for various models available on IBM Z
 
 ### Step 1A: Creating pvc and injecting Model data inside them (Required)
 
-As an example, there is a model directory present in the repo with two pre-populated data modules: creadit card fraud detection(Snapml) and densenet(onnx)
+As an example, there is a model directory present in the repo with two pre-populated data modules: credit card fraud detection(Snapml) and densenet(onnx)
 ```sh
 (base) shivanggoswami@Shivangs-MacBook-Pro operator-examples % tree models         
 models
