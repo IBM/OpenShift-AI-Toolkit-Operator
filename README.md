@@ -228,6 +228,25 @@ Assuming that operator was installed successfully and the custom crds can be app
 
 ---
 
+### 📌 RouteConfig Specification
+
+| Field            | Type                     | Description                            | Validation  |
+|-----------------|--------------------------|----------------------------------------|------------|
+| `routeAnnotation` | `RouteAnnotationConfig` | Configuration for route annotations. | **Optional** |
+
+---
+
+### 📌 RouteAnnotationConfig Specification
+
+| Field        | Type               | Description                          | Validation  |
+|-------------|--------------------|--------------------------------------|------------|
+| `annotations` | `map[string]string` | Key-value pairs for route annotations. | **Required**, **MinProperties=1** (must have at least one key-value pair). |
+| `applyTo`   | `string`           | Specifies where the annotation applies. | **Required**, must be one of: `"All"`, `"HTTP"`, `"GRPC"`, `"Metrics"`. |
+
+---
+
+<i>Note: 📌 denotes new feature introduced</i>
+
 There is a sample crd within the repo as well
 
 ```sh
@@ -261,6 +280,12 @@ spec:
     requests:
       cpu: 100m
       memory: 200Mi
+  routeConfig:
+    routeAnnotation:
+      applyTo: All
+      annotations:
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
 ```
 
 Once the CRD is applied to a particular namespace, deployments, services and routes will be created for the same.
