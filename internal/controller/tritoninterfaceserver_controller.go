@@ -70,7 +70,7 @@ func (r *TritonInterfaceServerReconciler) Reconcile(ctx context.Context, req ctr
 		return ctrl.Result{}, err
 	}
 	//
-	log.Log.Info("Check", "Spec", tis.Spec)
+	log.Log.Info("Received", "Spec", tis.Spec)
 	//
 	deploymentName := string("triton-server-"+tis.UID[:8]) + "-" + tis.Spec.PvcName
 	//check Deployment
@@ -88,6 +88,15 @@ func (r *TritonInterfaceServerReconciler) Reconcile(ctx context.Context, req ctr
 	} else if err != nil {
 		log.Log.Error(err, "Failed to get Deployment", "deployment.Namespace", tis.Namespace, "deployment.Name", deploymentName, "TritonInterfaceServer", tis.Name)
 		return ctrl.Result{}, err
+	}
+	//check desired replicas
+	if *deploymentResource.Spec.Replicas != tis.Spec.Replicas {
+		deploymentResource.Spec.Replicas = &tis.Spec.Replicas
+		err = r.Update(ctx, deploymentResource)
+		if err != nil {
+			log.Log.Error(err, "Failed to update Deployment replicas", "deployment.Namespace", tis.Namespace, "deployment.Name", deploymentName, "TritonInterfaceServer", tis.Name)
+			return ctrl.Result{}, err
+		}
 	}
 	//check services and routes
 	for _, server := range tis.Spec.Servers {
@@ -130,6 +139,12 @@ func (r *TritonInterfaceServerReconciler) Reconcile(ctx context.Context, req ctr
 			return ctrl.Result{Requeue: true}, nil
 		} else if err != nil {
 			log.Log.Error(err, "Failed to get Route", "Route.Namespace", tis.Namespace, "Route.Name", routeName, "TritonInterfaceServer", tis.Name)
+			return ctrl.Result{}, err
+		}
+		//update annotations
+		InjectRouteConfig(tis, routeResource)
+		if err := r.Update(ctx, routeResource); err != nil {
+			log.Log.Error(err, "Failed to update Route annotations", "deployment.Namespace", tis.Namespace, "deployment.Name", deploymentName, "TritonInterfaceServer", tis.Name)
 			return ctrl.Result{}, err
 		}
 	}
