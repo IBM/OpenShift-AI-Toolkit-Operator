@@ -25,3 +25,10 @@ spec:
     requests:
       cpu: 100m
       memory: 200Mi
+  routeConfig:
+    routeAnnotation:
+      applyTo: All
+      annotations:
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
+      

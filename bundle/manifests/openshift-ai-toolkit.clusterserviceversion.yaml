@@ -32,6 +32,15 @@ metadata:
               }
             },
             "pvcName": "triton-pvc",
+            "routeConfig": {
+              "routeAnnotation": {
+                "annotations": {
+                  "haproxy.router.openshift.io/balance": "roundrobin",
+                  "haproxy.router.openshift.io/disable_cookies": "true"
+                },
+                "applyTo": "All"
+              }
+            },
             "servers": [
               {
                 "enabled": true,
@@ -50,8 +59,8 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2025-01-06T17:45:04Z"
-    operators.operatorframework.io/builder: operator-sdk-v1.38.0
+    createdAt: "2025-02-19T13:47:10Z"
+    operators.operatorframework.io/builder: operator-sdk-v1.39.1
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
   labels:
     operatorframework.io/arch.s390x: supported
