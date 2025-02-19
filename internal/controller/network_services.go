@@ -1,6 +1,9 @@
 package controller
 
 import (
+	"maps"
+	"strings"
+
 	aitoolkitv1alpha1 "github.com/IBM/OpenShift-AI-Toolkit-Operator/api/v1alpha1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -48,5 +51,19 @@ func populateDefaultServerPorts(server *aitoolkitv1alpha1.Server) {
 		server.ContainerPort = 8001
 	} else if server.Type == "Metrics" && server.ContainerPort == 0 {
 		server.ContainerPort = 8002
+	}
+}
+
+func InjectRouteConfig(tis *aitoolkitv1alpha1.TritonInterfaceServer, route *routev1.Route) {
+	if len(tis.Spec.RouteConfig.RouteAnnotation.Annotations) != 0 {
+		if tis.Spec.RouteConfig.RouteAnnotation.ApplyTo == "All" {
+			maps.Copy(route.Annotations, tis.Spec.RouteConfig.RouteAnnotation.Annotations)
+		} else if tis.Spec.RouteConfig.RouteAnnotation.ApplyTo == "HTTP" && strings.Contains(route.Name, "http") {
+			maps.Copy(route.Annotations, tis.Spec.RouteConfig.RouteAnnotation.Annotations)
+		} else if tis.Spec.RouteConfig.RouteAnnotation.ApplyTo == "GRPC" && strings.Contains(route.Name, "grpc") {
+			maps.Copy(route.Annotations, tis.Spec.RouteConfig.RouteAnnotation.Annotations)
+		} else if tis.Spec.RouteConfig.RouteAnnotation.ApplyTo == "Metrics" && strings.Contains(route.Name, "metrics") {
+			maps.Copy(route.Annotations, tis.Spec.RouteConfig.RouteAnnotation.Annotations)
+		}
 	}
 }

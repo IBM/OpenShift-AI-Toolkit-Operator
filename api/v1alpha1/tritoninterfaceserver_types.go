@@ -45,6 +45,13 @@ type TritonInterfaceServerSpec struct {
 
 	// +kubebuilder:validation:Optional
 	GrpcConfig GrpcConfig `json:"grpcConfig"`
+
+	// +kubebuilder:default=1
+	// +kubebuilder:validation:Minimum=0
+	Replicas int32 `json:"replicas"`
+
+	// +kubebuilder:validation:Optional
+	RouteConfig RouteConfig `json:"routeConfig"`
 }
 
 type Server struct {
@@ -71,6 +78,21 @@ type PodResource struct {
 	Cpu string `json:"cpu"`
 	// +kubebuilder:validation:Required
 	Memory string `json:"memory"`
+}
+
+type RouteConfig struct {
+	// +kubebuilder:validation:Optional
+	RouteAnnotation RouteAnnotationConfig `json:"routeAnnotation"`
+}
+
+type RouteAnnotationConfig struct {
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Type=object
+	// +kubebuilder:validation:MinProperties=1
+	Annotations map[string]string `json:"annotations"`
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Enum=All;HTTP;GRPC;Metrics
+	ApplyTo string `json:"applyTo"`
 }
 
 type GrpcConfig struct {

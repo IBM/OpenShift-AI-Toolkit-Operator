@@ -78,6 +78,32 @@ spec:
                 type: object
               pvcName:
                 type: string
+              replicas:
+                default: 1
+                format: int32
+                minimum: 0
+                type: integer
+              routeConfig:
+                properties:
+                  routeAnnotation:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        minProperties: 1
+                        type: object
+                      applyTo:
+                        enum:
+                        - All
+                        - HTTP
+                        - GRPC
+                        - Metrics
+                        type: string
+                    required:
+                    - annotations
+                    - applyTo
+                    type: object
+                type: object
               servers:
                 items:
                   properties:
@@ -109,6 +135,7 @@ spec:
             required:
             - mountPath
             - pvcName
+            - replicas
             - servers
             - servingImage
             type: object

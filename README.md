@@ -196,6 +196,9 @@ Assuming that operator was installed successfully and the custom crds can be app
 | `servingImage`       | `"icr.io/ibmz/ibmz-accelerated-for-nvidia-triton-inference-server@sha256:2cedd535805c316..."`       | The Docker image used for the Triton inference server.                                            |
 | `servers`            | `[{"type": "HTTP", "enabled": true, "containerPort": 8000}]`                                       | List of server configurations including type, whether enabled, and container port.                |
 | `podResources`       | `{"limits": {"cpu": "2", "memory": "2Gi"}, "requests": {"cpu": "1", "memory": "1Gi"}}`             | Resource requests and limits for the pod (CPU and memory).                                        |
+| `grpcConfig`        | `{"tlsSpec":{"tlsSecretName":"grpc-tls-secret"}}`                                                                                                | Configuration settings for gRPC.                                                                  |
+| `replicas`          | `1`                                                                                                 | Number of replicas for the deployment. Minimum value is `0`.                                      |
+| `routeConfig`       | `{"routeAnnotation":{"annotations":{"haproxy.router.openshift.io/balance":"roundrobin","haproxy.router.openshift.io/disable_cookies":"true"},"applyTo":"All"}}`                                                                                                | Configuration for custom routes and annotations. 
 
 ---
 
@@ -227,6 +230,25 @@ Assuming that operator was installed successfully and the custom crds can be app
 | `tlsSecretName`          | `"grpc-tls-secret"`                 | The OpenShift Secret Name where TLS configurations are stored.                       |                         
 
 ---
+
+### 📌 RouteConfig Specification
+
+| Field            | Type                     | Description                            | Validation  |
+|-----------------|--------------------------|----------------------------------------|------------|
+| `routeAnnotation` | `RouteAnnotationConfig` | Configuration for route annotations. | **Optional** |
+
+---
+
+### 📌 RouteAnnotationConfig Specification
+
+| Field        | Type               | Description                          | Validation  |
+|-------------|--------------------|--------------------------------------|------------|
+| `annotations` | `map[string]string` | Key-value pairs for route annotations. | **Required**, **MinProperties=1** (must have at least one key-value pair). |
+| `applyTo`   | `string`           | Specifies where the annotation applies. | **Required**, must be one of: `"All"`, `"HTTP"`, `"GRPC"`, `"Metrics"`. |
+
+---
+
+<i>Note: 📌 denotes new feature introduced</i>
 
 There is a sample crd within the repo as well
 
@@ -261,6 +283,12 @@ spec:
     requests:
       cpu: 100m
       memory: 200Mi
+  routeConfig:
+    routeAnnotation:
+      applyTo: All
+      annotations:
+        haproxy.router.openshift.io/balance: roundrobin
+        haproxy.router.openshift.io/disable_cookies: "true"
 ```
 
 Once the CRD is applied to a particular namespace, deployments, services and routes will be created for the same.
