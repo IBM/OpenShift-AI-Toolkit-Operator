@@ -196,6 +196,9 @@ Assuming that operator was installed successfully and the custom crds can be app
 | `servingImage`       | `"icr.io/ibmz/ibmz-accelerated-for-nvidia-triton-inference-server@sha256:2cedd535805c316..."`       | The Docker image used for the Triton inference server.                                            |
 | `servers`            | `[{"type": "HTTP", "enabled": true, "containerPort": 8000}]`                                       | List of server configurations including type, whether enabled, and container port.                |
 | `podResources`       | `{"limits": {"cpu": "2", "memory": "2Gi"}, "requests": {"cpu": "1", "memory": "1Gi"}}`             | Resource requests and limits for the pod (CPU and memory).                                        |
+| `grpcConfig`        | `{"tlsSpec":{"tlsSecretName":"grpc-tls-secret"}}`                                                                                                | Configuration settings for gRPC.                                                                  |
+| `replicas`          | `1`                                                                                                 | Number of replicas for the deployment. Minimum value is `0`.                                      |
+| `routeConfig`       | `{"routeAnnotation":{"annotations":{"haproxy.router.openshift.io/balance":"roundrobin","haproxy.router.openshift.io/disable_cookies":"true"},"applyTo":"All"}}`                                                                                                | Configuration for custom routes and annotations. 
 
 ---
 
