@@ -27,6 +27,9 @@ jobs:
      # VERSION-TAG: "${{ github.event.inputs.version }}"
     steps: 
       # Prerequisite
+      - name: print env
+        run: echo ${env.VERSION_TAG}
+        
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Set up Go
