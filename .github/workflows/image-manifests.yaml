@@ -6,7 +6,7 @@ on:
       development-tag:
         description: 'Development flag to distinguish the dev branches'
         required: true
-        default: 'Yes'
+        default: true
       version:
         description: 'The version number of the operator'
         required: true
@@ -19,8 +19,12 @@ jobs:
       IMAGE_TAG_BASE: 'quay.io/openshift-ai-toolkit/openshift-ai-toolkit-operator'
       PLATFORMS: 'linux/s390x'
       CONTAINER_TOOL: 'docker'
-      if: ${{ github.event.inputs.development-tag }}=='yes'
-      VERSION-TAG: "${{ github.event.inputs.version }}-dev"
+      VERSION-TAG: ${{ github.event.inputs.development-tag == 'true' && "${{ github.event.inputs.version }}-dev" || "${{ github.event.inputs.version }}" }}
+      
+     # if: ${{ github.event.inputs.development-tag }}=='yes'
+     # VERSION-TAG: "${{ github.event.inputs.version }}-dev"
+     # if: ${{ github.event.inputs.development-tag }}=='no'
+     # VERSION-TAG: "${{ github.event.inputs.version }}"
     steps: 
       # Prerequisite
       - name: Checkout repository
@@ -42,13 +46,6 @@ jobs:
           registry: quay.io
           username: ${{ secrets.CR_USER_NAME }}
           password: ${{ secrets.CR_SECRET }}
-          
-  #    - name: Defining-tags
-   #     if: ${{ github.event.inputs.development-tag }}=='yes'
-    #    run:  |
-     #     final_version_tag="${{ github.event.inputs.version }}-dev"
-      #    echo "final_version_tag=$final_version_tag" >> $GITHUB_OUTPUT
-
         
       # Builds
       - name: Docker build and push using Buildx
@@ -58,7 +55,7 @@ jobs:
           make docker-buildx
       - name: Bundle build and push
         env:
-          VERSION: '${{ github.event.inputs.version }}'
+          VERSION: '${{ env.VERSION-TAG }}'
           IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ env.VERSION-TAG }}'
           BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ env.VERSION-TAG }}'
         run: |
@@ -71,7 +68,7 @@ jobs:
           rm bundle.Dockerfile.cross
       - name: Catalog build and push
         env:
-          VERSION: '${{ steps.Defining-tags.final_version_tag }}'
+          VERSION: '${{ env.VERSION-TAG }}'
           DOCKER_DEFAULT_PLATFORM: '${{ env.PLATFORMS }}'
         run: |
           make catalog-build catalog-push
