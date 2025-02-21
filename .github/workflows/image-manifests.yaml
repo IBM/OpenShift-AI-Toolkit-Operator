@@ -19,6 +19,8 @@ jobs:
       IMAGE_TAG_BASE: 'quay.io/openshift-ai-toolkit/openshift-ai-toolkit-operator'
       PLATFORMS: 'linux/s390x'
       CONTAINER_TOOL: 'docker'
+      if: ${{ github.event.inputs.development-tag }}=='yes'
+      VERSION-TAG: "${{ github.event.inputs.version }}-dev"
     steps: 
       # Prerequisite
       - name: Checkout repository
@@ -41,24 +43,24 @@ jobs:
           username: ${{ secrets.CR_USER_NAME }}
           password: ${{ secrets.CR_SECRET }}
           
-      - name: Defining-tags
-        if: ${{ github.event.inputs.development-tag }}=='yes'
-        run:  |
-          final_version_tag="${{ github.event.inputs.version }}-dev"
-          echo "final_version_tag=$final_version_tag" >> $GITHUB_OUTPUT
+  #    - name: Defining-tags
+   #     if: ${{ github.event.inputs.development-tag }}=='yes'
+    #    run:  |
+     #     final_version_tag="${{ github.event.inputs.version }}-dev"
+      #    echo "final_version_tag=$final_version_tag" >> $GITHUB_OUTPUT
 
         
       # Builds
       - name: Docker build and push using Buildx
         env:
-          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ github.event.inputs.version }}'
+          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ env.VERSION-TAG }}'
         run: |
           make docker-buildx
       - name: Bundle build and push
         env:
           VERSION: '${{ github.event.inputs.version }}'
-          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ steps.Defining-tags.final_version_tag }}'
-          BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ steps.Defining-tags.final_version_tag }}'
+          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ env.VERSION-TAG }}'
+          BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ env.VERSION-TAG }}'
         run: |
           make bundle
           sed -e '1 s/\(^FROM\)/FROM --platform=\$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$\{BUILDPLATFORM\}/' bundle.Dockerfile > bundle.Dockerfile.cross
