@@ -45,7 +45,7 @@ jobs:
         if: ${{ github.event.inputs.development-tag }}=='yes'
         run:  |
           final_version_tag="${{ github.event.inputs.development-tag }}-dev"
-          echo "final_version_tag" ?? $GITHUB_OUTPUT
+          echo "final_version_tag" >> $GITHUB_OUTPUT
         
       # Builds
       - name: Docker build and push using Buildx
