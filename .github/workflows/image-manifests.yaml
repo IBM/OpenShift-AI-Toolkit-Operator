@@ -3,6 +3,10 @@ name: AI-toolkit-release-image-generation-workflow
 on:
   workflow_dispatch:
     inputs:
+      development-tag:
+        description: 'Development flag to distinguish the dev branches'
+        required: true
+        default: 'Yes'
       version:
         description: 'The version number of the operator'
         required: true
@@ -36,6 +40,10 @@ jobs:
           registry: quay.io
           username: ${{ secrets.CR_USER_NAME }}
           password: ${{ secrets.CR_SECRET }}
+      - name: Definiting tags
+        if: ${{ github.event.inputs.development-tag }}=='yes'
+        run:  echo ${{ github.event.inputs.version }}+'-dev' >> ${{ github.event.inputs.version }}
+        
       # Builds
       - name: Docker build and push using Buildx
         env:
