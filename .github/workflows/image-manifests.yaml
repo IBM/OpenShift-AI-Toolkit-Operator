@@ -44,7 +44,7 @@ jobs:
       - name: Defining-tags
         if: ${{ github.event.inputs.development-tag }}=='yes'
         run:  |
-          final_version_tag="${{ github.event.inputs.development-tag }}-dev"
+          final_version_tag="${{ github.event.inputs.inputs.version }}-dev"
           echo "final_version_tag" >> $GITHUB_OUTPUT
         
       # Builds
