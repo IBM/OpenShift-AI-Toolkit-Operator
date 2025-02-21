@@ -19,7 +19,7 @@ jobs:
       IMAGE_TAG_BASE: 'quay.io/openshift-ai-toolkit/openshift-ai-toolkit-operator'
       PLATFORMS: 'linux/s390x'
       CONTAINER_TOOL: 'docker'
-      VERSION-TAG: ${{ github.event.inputs.development-tag == 'true' && ${{ github.event.inputs.version }} || ${{ github.event.inputs.version }} }}
+      VERSION-TAG: ${{ github.event.inputs.development-tag }} == 'true' && '${{ github.event.inputs.version }}-dev' || '${{ github.event.inputs.version }}'
       
      # if: ${{ github.event.inputs.development-tag }}=='yes'
      # VERSION-TAG: "${{ github.event.inputs.version }}-dev"
