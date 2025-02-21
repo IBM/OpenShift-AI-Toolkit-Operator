@@ -1,0 +1,31 @@
+name: test
+
+on:
+  workflow_dispatch:
+    inputs:
+      development-tag:
+        description: 'Development flag to distinguish the dev branches'
+        required: true
+        default: true
+      version:
+        description: 'The version number of the operator'
+        required: true
+        default: '0.0.3'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Set environment variable based on condition
+          run: |
+            if [ "${{ github.event.inputs.development-tag }}" == "true" ]; then
+              echo "MY_ENV_VAR=${{ github.event.inputs.version }}-dev" >> $GITHUB_ENV
+            else
+              echo "MY_ENV_VAR=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+            fi
+
+#        - name: Print environment variable
+#          run: echo "MY_ENV_VAR is set to: $MY_ENV_VAR"
+
+        - name: Print all environment variables
+          run: env
