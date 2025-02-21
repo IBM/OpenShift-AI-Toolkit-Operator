@@ -40,9 +40,15 @@ jobs:
           registry: quay.io
           username: ${{ secrets.CR_USER_NAME }}
           password: ${{ secrets.CR_SECRET }}
-      - name: Definiting tags
+
+      - name: Use updated input
+        run: echo "Updated input from previous step: ${{ steps.update_input.outputs.updated_input }}"
+          
+      - name: Defining-tags
         if: ${{ github.event.inputs.development-tag }}=='yes'
-        run:  echo ${{ github.event.inputs.version }}+'-dev' >> ${{ github.event.inputs.version }}
+        run:  |
+          final_version_tag="${{ github.event.inputs.development-tag }}-dev"
+          echo "final_version_tag" ?? $GITHUB_OUTPUT
         
       # Builds
       - name: Docker build and push using Buildx
@@ -53,8 +59,8 @@ jobs:
       - name: Bundle build and push
         env:
           VERSION: '${{ github.event.inputs.version }}'
-          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ github.event.inputs.version }}'
-          BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ github.event.inputs.version }}'
+          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ steps.Defining-tags.final_version_tag }}'
+          BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ steps.Defining-tags.final_version_tag }}'
         run: |
           make bundle
           sed -e '1 s/\(^FROM\)/FROM --platform=\$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$\{BUILDPLATFORM\}/' bundle.Dockerfile > bundle.Dockerfile.cross
@@ -65,7 +71,7 @@ jobs:
           rm bundle.Dockerfile.cross
       - name: Catalog build and push
         env:
-          VERSION: '${{ github.event.inputs.version }}'
+          VERSION: '${{ steps.Defining-tags.final_version_tag }}'
           DOCKER_DEFAULT_PLATFORM: '${{ env.PLATFORMS }}'
         run: |
           make catalog-build catalog-push
