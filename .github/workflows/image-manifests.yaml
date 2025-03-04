@@ -3,6 +3,10 @@ name: AI-toolkit-release-image-generation-workflow
 on:
   workflow_dispatch:
     inputs:
+      development-tag:
+        description: 'Development flag to distinguish the dev branches'
+        required: true
+        default: true
       version:
         description: 'The version number of the operator'
         required: true
@@ -15,12 +19,33 @@ jobs:
       IMAGE_TAG_BASE: 'quay.io/openshift-ai-toolkit/openshift-ai-toolkit-operator'
       PLATFORMS: 'linux/s390x'
       CONTAINER_TOOL: 'docker'
+     # VERSION-TAG: ${{ github.event.inputs.development-tag }} == 'true' && '${{ github.event.inputs.version }}-dev' || '${{ github.event.inputs.version }}' }}
+      
+     # if: ${{ github.event.inputs.development-tag }}=='yes'
+     # VERSION-TAG: "${{ github.event.inputs.version }}-dev"
+     # if: ${{ github.event.inputs.development-tag }}=='no'
+     # VERSION-TAG: "${{ github.event.inputs.version }}"
+    outputs:
+      my_env_var: ${{ steps.set_env.outputs.my_env_var }}
     steps: 
       # Prerequisite
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v5
+
+      - name: Set environment variable based on condition
+        id: set_env
+        run: |
+          if [ '${{ github.event.inputs.development-tag }}' == 'true' ]; then
+            echo 'my_env_var=${{ github.event.inputs.version }}-dev' >> $GITHUB_OUTPUT
+          else
+            echo 'my_env_var=${{ github.event.inputs.version }}' >> $GITHUB_OUTPUT
+          fi
+
+      - name: Print environment variable
+        run: echo "MY_ENV_VAR is set to ${{ steps.set_env.outputs.my_env_var }}"
+        
       - name: Run make commands
         run: make generate manifests
       - name: Set up QEMU
@@ -36,17 +61,18 @@ jobs:
           registry: quay.io
           username: ${{ secrets.CR_USER_NAME }}
           password: ${{ secrets.CR_SECRET }}
+        
       # Builds
       - name: Docker build and push using Buildx
         env:
-          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ github.event.inputs.version }}'
+          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ steps.set_env.outputs.my_env_var }}'
         run: |
           make docker-buildx
       - name: Bundle build and push
         env:
-          VERSION: '${{ github.event.inputs.version }}'
-          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ github.event.inputs.version }}'
-          BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ github.event.inputs.version }}'
+          VERSION: '${{ steps.set_env.outputs.my_env_var }}'
+          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ steps.set_env.outputs.my_env_var }}'
+          BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ steps.set_env.outputs.my_env_var }}'
         run: |
           make bundle
           sed -e '1 s/\(^FROM\)/FROM --platform=\$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$\{BUILDPLATFORM\}/' bundle.Dockerfile > bundle.Dockerfile.cross
@@ -57,7 +83,7 @@ jobs:
           rm bundle.Dockerfile.cross
       - name: Catalog build and push
         env:
-          VERSION: '${{ github.event.inputs.version }}'
+          VERSION: '${{ steps.set_env.outputs.my_env_var }}'
           DOCKER_DEFAULT_PLATFORM: '${{ env.PLATFORMS }}'
         run: |
           make catalog-build catalog-push
