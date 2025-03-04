@@ -24,10 +24,10 @@ jobs:
       - name: Set environment variable based on condition
         id: set_env
         run: |
-          if [ "${{ github.event.inputs.development-tag }}" == "true" ]; then
-            echo "my_env_var=${{ github.event.inputs.version }}-dev” >> $GITHUB_OUTPUT
+          if [ '${{ github.event.inputs.development-tag }}' == 'true' ]; then
+            echo 'my_env_var=${{ github.event.inputs.version }}-dev' >> $GITHUB_OUTPUT
           else
-            echo "my_env_var=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo 'my_env_var=${{ github.event.inputs.version }}' >> $GITHUB_OUTPUT
           fi
 
       - name: Print environment variable
