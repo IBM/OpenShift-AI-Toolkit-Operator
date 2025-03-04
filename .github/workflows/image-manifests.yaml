@@ -70,7 +70,7 @@ jobs:
           make docker-buildx
       - name: Bundle build and push
         env:
-          VERSION: '${{ env.VERSION-TAG }}'
+          VERSION: '${{ steps.set_env.outputs.my_env_var }}'
           IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ steps.set_env.outputs.my_env_var }}'
           BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ steps.set_env.outputs.my_env_var }}'
         run: |
