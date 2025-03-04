@@ -31,7 +31,7 @@ jobs:
           fi
 
       - name: Print environment variable
-        run: echo "MY_ENV_VAR is set to: ${{ steps.set_env.outputs.my_env_var }}"
+        run: echo "MY_ENV_VAR is set to ${{ steps.set_env.outputs.my_env_var }}"
 
       - name: Print all environment variables
         run: env
