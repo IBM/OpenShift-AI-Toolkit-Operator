@@ -1,23 +1,23 @@
 name: test
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # This is required for manual triggers
     inputs:
-      development-tag:
-        description: 'Development flag to distinguish the dev branches'
-        required: true
-        default: true
       version:
-        description: 'The version number of the operator'
+        description: 'Version number'
         required: true
-        default: '0.0.3'
+        default: ‘0.0.3’
+      development-tag:
+        description: 'Is this a development tag?'
+        required: true
+        default: ‘true’
 
 jobs:
-  build:
+  set-env:
     runs-on: ubuntu-latest
     outputs:
       my_env_var: ${{ steps.set_env.outputs.my_env_var }}
-	  steps:
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -35,6 +35,4 @@ jobs:
 
       - name: Print all environment variables
         run: env
-
-
 
