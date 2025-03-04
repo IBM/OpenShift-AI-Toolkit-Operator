@@ -1,0 +1,40 @@
+name: test
+
+on:
+  workflow_dispatch:
+    inputs:
+      development-tag:
+        description: 'Development flag to distinguish the dev branches'
+        required: true
+        default: true
+      version:
+        description: 'The version number of the operator'
+        required: true
+        default: '0.0.3'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      my_env_var: ${{ steps.set_env.outputs.my_env_var }}
+	  steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set environment variable based on condition
+        id: set_env
+        run: |
+          if [ "${{ github.event.inputs.development-tag }}" == "true" ]; then
+            echo "my_env_var=${{ github.event.inputs.version }}-dev” >> $GITHUB_OUTPUT
+          else
+            echo "my_env_var=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Print environment variable
+        run: echo "MY_ENV_VAR is set to: ${{ steps.set_env.outputs.my_env_var }}"
+
+      - name: Print all environment variables
+        run: env
+
+
+
