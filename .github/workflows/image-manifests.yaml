@@ -25,15 +25,27 @@ jobs:
      # VERSION-TAG: "${{ github.event.inputs.version }}-dev"
      # if: ${{ github.event.inputs.development-tag }}=='no'
      # VERSION-TAG: "${{ github.event.inputs.version }}"
+    outputs:
+      my_env_var: ${{ steps.set_env.outputs.my_env_var }}
     steps: 
       # Prerequisite
-      - name: print env
-        run: echo '${{ env.VERSION-TAG }}'
-        
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v5
+
+      - name: Set environment variable based on condition
+        id: set_env
+        run: |
+          if [ '${{ github.event.inputs.development-tag }}' == 'true' ]; then
+            echo 'my_env_var=${{ github.event.inputs.version }}-dev' >> $GITHUB_OUTPUT
+          else
+            echo 'my_env_var=${{ github.event.inputs.version }}' >> $GITHUB_OUTPUT
+          fi
+
+      - name: Print environment variable
+        run: echo "MY_ENV_VAR is set to ${{ steps.set_env.outputs.my_env_var }}"
+        
       - name: Run make commands
         run: make generate manifests
       - name: Set up QEMU
@@ -53,14 +65,14 @@ jobs:
       # Builds
       - name: Docker build and push using Buildx
         env:
-          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ env.VERSION-TAG }}'
+          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ steps.set_env.outputs.my_env_var }}'
         run: |
           make docker-buildx
       - name: Bundle build and push
         env:
           VERSION: '${{ env.VERSION-TAG }}'
-          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ env.VERSION-TAG }}'
-          BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ env.VERSION-TAG }}'
+          IMG: '${{ env.IMAGE_TAG_BASE }}-controller:v${{ steps.set_env.outputs.my_env_var }}'
+          BUNDLE_IMG: '${{ env.IMAGE_TAG_BASE }}-bundle:v${{ steps.set_env.outputs.my_env_var }}'
         run: |
           make bundle
           sed -e '1 s/\(^FROM\)/FROM --platform=\$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$\{BUILDPLATFORM\}/' bundle.Dockerfile > bundle.Dockerfile.cross
@@ -71,7 +83,7 @@ jobs:
           rm bundle.Dockerfile.cross
       - name: Catalog build and push
         env:
-          VERSION: '${{ env.VERSION-TAG }}'
+          VERSION: '${{ steps.set_env.outputs.my_env_var }}'
           DOCKER_DEFAULT_PLATFORM: '${{ env.PLATFORMS }}'
         run: |
           make catalog-build catalog-push
