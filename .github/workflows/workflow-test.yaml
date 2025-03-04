@@ -1,4 +1,4 @@
-name: test
+name: workflow-test
 
 on:
   workflow_dispatch:  # This is required for manual triggers
