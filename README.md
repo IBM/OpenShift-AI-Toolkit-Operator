@@ -109,6 +109,8 @@ The following script use oc rsync command so local directory can sync delta chan
 | `ALPINE_IMAGE`  | `alpinelinux/rsyncd`  | Docker image to use for the pod's container.                  |
 | `CLEAN`         | `true`                | Indicates whether to delete existing PVC and pod before execution. |
 
+<i>NOTE: alpinelinux/rsyncd images are also available at https://quay.io/repository/openshift-ai-toolkit/rsyncd </i>
+
 Attaching sample Output for Reference:
 <details> <summary>Click to expand: Shell Output</summary>
  
